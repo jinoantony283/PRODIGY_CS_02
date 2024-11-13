@@ -1,54 +1,58 @@
-import re
+from PIL import Image
+import numpy as np
 
-def assess_password_strength(password):
-    # Define password strength criteria
-    length_criteria = len(password) >= 8
-    upper_criteria = re.search(r'[A-Z]', password) is not None
-    lower_criteria = re.search(r'[a-z]', password) is not None
-    number_criteria = re.search(r'[0-9]', password) is not None
-    special_char_criteria = re.search(r'[@#$%^&+=]', password) is not None
+# Function to encrypt an image using XOR operation
+def encrypt_image(input_image_path, output_image_path, key):
+    # Open the image and convert to numpy array
+    img = Image.open(input_image_path)
+    img_array = np.array(img)
     
-    # Calculate strength score
-    score = 0
-    if length_criteria:
-        score += 1
-    if upper_criteria:
-        score += 1
-    if lower_criteria:
-        score += 1
-    if number_criteria:
-        score += 1
-    if special_char_criteria:
-        score += 1
+    # Encrypt the image using XOR with the key
+    encrypted_array = img_array ^ key
     
-    # Determine password strength
-    if score == 5:
-        strength = "Very Strong"
-        feedback = "Your password is very strong!"
-    elif score == 4:
-        strength = "Strong"
-        feedback = "Your password is strong, but could be improved by adding a special character."
-    elif score == 3:
-        strength = "Moderate"
-        feedback = "Your password is moderate. Consider adding a special character or a number."
-    elif score == 2:
-        strength = "Weak"
-        feedback = "Your password is weak. Consider adding a mix of uppercase, lowercase, numbers, and special characters."
-    else:
-        strength = "Very Weak"
-        feedback = "Your password is very weak. Please make it at least 8 characters long, with a mix of uppercase, lowercase, numbers, and special characters."
+    # Convert back to Image object
+    encrypted_img = Image.fromarray(encrypted_array)
     
-    # Provide feedback on the password
-    return {
-        'password': password,
-        'strength': strength,
-        'feedback': feedback
-    }
+    # Save the encrypted image
+    encrypted_img.save(output_image_path)
+    print(f"Image encrypted and saved as {output_image_path}")
 
-# Example usage
-password = input("Enter a password to assess its strength: ")
-assessment = assess_password_strength(password)
+# Function to decrypt an image using XOR operation
+def decrypt_image(input_image_path, output_image_path, key):
+    # Open the image and convert to numpy array
+    img = Image.open(input_image_path)
+    img_array = np.array(img)
+    
+    # Decrypt the image using XOR with the same key
+    decrypted_array = img_array ^ key
+    
+    # Convert back to Image object
+    decrypted_img = Image.fromarray(decrypted_array)
+    
+    # Save the decrypted image
+    decrypted_img.save(output_image_path)
+    print(f"Image decrypted and saved as {output_image_path}")
 
-print(f"Password: {assessment['password']}")
-print(f"Strength: {assessment['strength']}")
-print(f"Feedback: {assessment['feedback']}")
+# Generate a random key for encryption (the key should be the same size as the image)
+def generate_random_key(image_width, image_height):
+    # Generate a random key of the same size as the image (3 channels for RGB)
+    return np.random.randint(0, 256, (image_height, image_width, 3), dtype=np.uint8)
+
+# Test the encryption and decryption functions
+if __name__ == "__main__":
+    input_image_path = "input_image.jpg"  # Path to the input image
+    encrypted_image_path = "encrypted_image.jpg"  # Path to save the encrypted image
+    decrypted_image_path = "decrypted_image.jpg"  # Path to save the decrypted image
+    
+    # Open the input image and get its dimensions
+    img = Image.open(input_image_path)
+    img_width, img_height = img.size
+    
+    # Generate a random key for encryption
+    key = generate_random_key(img_width, img_height)
+    
+    # Encrypt the image
+    encrypt_image(input_image_path, encrypted_image_path, key)
+    
+    # Decrypt the image back
+    decrypt_image(encrypted_image_path, decrypted_image_path, key)
